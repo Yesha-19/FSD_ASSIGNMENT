@@ -1,0 +1,13 @@
+
+# Dependencies
+node_modules/
+
+# Environment variables
+.env
+
+# Python model files
+*.pkl
+
+# Large datasets
+sustainabuy/ai-service/data/cleaned_products.csv
+sustainabuy/ai-service/data/en.openfoodfacts.org.products.tsv
