@@ -21,7 +21,6 @@ function Login() {
       navigate("/search");
     } catch (err) {
       if (!err.response) {
-        // No response at all = server is down or not reachable
         setError("Cannot reach the server. Make sure the backend is running on port 5000.");
       } else {
         setError(err.response?.data?.message || "Login failed. Please try again.");
@@ -31,21 +30,21 @@ function Login() {
   };
 
   return (
-    <div style={{ maxWidth: 400, margin: "60px auto" }}>
-      <h2>Login</h2>
+    <div style={{ maxWidth: 400, margin: "60px auto", padding: "30px", background: "white", borderRadius: "10px", boxShadow: "0 4px 6px rgba(0,0,0,0.1)" }}>
+      <h2 style={{ color: "var(--hunter-green)", textAlign: "center", marginBottom: "20px" }}>Login</h2>
       <form onSubmit={handleSubmit}>
         <input type="email" placeholder="Email" value={email}
           onChange={(e) => setEmail(e.target.value)} required
-          style={{ width: "100%", padding: 8, marginBottom: 10 }} />
+          style={{ width: "100%", padding: "12px", marginBottom: "15px", borderRadius: "6px", border: "1px solid var(--dry-sage)", boxSizing: "border-box" }} />
         <input type="password" placeholder="Password" value={password}
           onChange={(e) => setPassword(e.target.value)} required
-          style={{ width: "100%", padding: 8, marginBottom: 10 }} />
-        {error && <p style={{ color: "red", background: "#fff3f3", padding: 8, borderRadius: 4 }}>⚠️ {error}</p>}
-        <button type="submit" disabled={loading} style={{ width: "100%", padding: 10 }}>
+          style={{ width: "100%", padding: "12px", marginBottom: "15px", borderRadius: "6px", border: "1px solid var(--dry-sage)", boxSizing: "border-box" }} />
+        {error && <p style={{ color: "white", background: "#d32f2f", padding: 10, borderRadius: 6, fontSize: "14px", marginTop: "0" }}>⚠️ {error}</p>}
+        <button type="submit" disabled={loading} style={{ width: "100%", padding: "12px", borderRadius: "6px", fontSize: "16px", fontWeight: "bold", border: "none" }}>
           {loading ? "Logging in..." : "Login"}
         </button>
       </form>
-      <p>No account? <Link to="/signup">Sign up</Link></p>
+      <p style={{ textAlign: "center", marginTop: "20px" }}>No account? <Link to="/signup" style={{ fontWeight: "bold" }}>Sign up</Link></p>
     </div>
   );
 }

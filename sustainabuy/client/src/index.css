@@ -1,3 +1,11 @@
+:root {
+  --dust-grey: #dad7cd;
+  --dry-sage: #a3b18a;
+  --fern: #588157;
+  --hunter-green: #3a5a40;
+  --pine-teal: #344e41;
+}
+
 body {
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
@@ -5,6 +13,33 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  background-color: var(--dust-grey);
+  color: var(--pine-teal);
+}
+
+a {
+  color: var(--hunter-green);
+  text-decoration: none;
+}
+a:hover {
+  color: var(--fern);
+}
+
+button {
+  background-color: var(--fern);
+  color: white;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+button:hover {
+  background-color: var(--hunter-green);
+}
+
+button:disabled {
+  background-color: var(--dry-sage);
+  cursor: not-allowed;
 }
 
 code {

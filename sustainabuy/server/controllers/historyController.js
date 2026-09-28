@@ -36,3 +36,16 @@ exports.getHistory = async (req, res) => {
     res.status(500).json({ message: "Server error fetching history", error: err.message });
   }
 };
+
+// DELETE /api/history/:id — remove a specific history item
+exports.deleteHistory = async (req, res) => {
+  try {
+    const history = await History.findOneAndDelete({ _id: req.params.id, user: req.user.id });
+    if (!history) {
+      return res.status(404).json({ message: "History item not found" });
+    }
+    res.json({ message: "Item removed from dashboard" });
+  } catch (err) {
+    res.status(500).json({ message: "Server error deleting history", error: err.message });
+  }
+};
