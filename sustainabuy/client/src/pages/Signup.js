@@ -18,7 +18,11 @@ function Signup() {
       setSuccess(true);
       setTimeout(() => navigate("/login"), 1000);
     } catch (err) {
-      setError(err.response?.data?.message || "Signup failed");
+      if (!err.response) {
+        setError("Cannot reach the server. Make sure the backend is running on port 5000.");
+      } else {
+        setError(err.response?.data?.message || "Signup failed. Please try again.");
+      }
     }
   };
 

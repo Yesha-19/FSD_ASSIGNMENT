@@ -8,8 +8,23 @@ require("dotenv").config();
 const csvPath = path.join(__dirname, "..", "..", "ai-service", "data", "cleaned_products.csv");
 
 async function seed() {
-  await mongoose.connect(process.env.MONGO_URI);
-  console.log("Connected to MongoDB. Reading CSV...");
+  // Verify CSV exists before trying to connect to DB
+  if (!fs.existsSync(csvPath)) {
+    console.error("❌ CSV file not found at:", csvPath);
+    console.error("   Run 'python train_model.py' inside sustainabuy/ai-service/ first.");
+    console.error("   That script generates the cleaned_products.csv data file.");
+    process.exit(1);
+  }
+
+  try {
+    await mongoose.connect(process.env.MONGO_URI);
+    console.log("✅ Connected to MongoDB. Reading CSV...");
+  } catch (err) {
+    console.error("❌ Could not connect to MongoDB:", err.message);
+    console.error("   Make sure MongoDB is running: net start MongoDB");
+    console.error("   Check MONGO_URI in server/.env");
+    process.exit(1);
+  }
 
   const products = [];
 
@@ -33,11 +48,27 @@ async function seed() {
         });
       }
     })
-    .on("end", async () => {
-      await Product.deleteMany({}); // clear old data before reseeding
-      await Product.insertMany(products);
-      console.log(`Seeded ${products.length} products into MongoDB!`);
+    .on("error", (err) => {
+      console.error("❌ Error reading CSV file:", err.message);
       mongoose.disconnect();
+      process.exit(1);
+    })
+    .on("end", async () => {
+      if (products.length === 0) {
+        console.error("❌ CSV was read but no products were parsed. Check the file format.");
+        mongoose.disconnect();
+        process.exit(1);
+      }
+
+      try {
+        await Product.deleteMany({}); // clear old data before reseeding
+        await Product.insertMany(products);
+        console.log(`✅ Seeded ${products.length} products into MongoDB!`);
+      } catch (err) {
+        console.error("❌ Failed to insert products into MongoDB:", err.message);
+      } finally {
+        mongoose.disconnect();
+      }
     });
 }
 
