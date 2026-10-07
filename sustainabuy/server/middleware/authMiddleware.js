@@ -18,4 +18,27 @@ const authMiddleware = (req, res, next) => {
   }
 };
 
+// Chains authMiddleware then enforces admin role.
+const adminMiddleware = (req, res, next) => {
+  authMiddleware(req, res, () => {
+    if (req.user?.role !== "admin") {
+      return res.status(403).json({ message: "Admin access required" });
+    }
+    next();
+  });
+};
+
+// Chains authMiddleware then enforces producer role.
+const producerMiddleware = (req, res, next) => {
+  authMiddleware(req, res, () => {
+    if (req.user?.role !== "producer" && req.user?.role !== "admin") {
+      return res.status(403).json({ message: "Producer access required" });
+    }
+    next();
+  });
+};
+
 module.exports = authMiddleware;
+module.exports.adminMiddleware = adminMiddleware;
+module.exports.producerMiddleware = producerMiddleware;
+

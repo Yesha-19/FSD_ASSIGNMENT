@@ -1,14 +1,26 @@
 const express = require("express");
 const router = express.Router();
-const { searchProducts, getProductScore, createProduct } = require("../controllers/productController");
+const authMiddleware = require("../middleware/authMiddleware");
+const { producerMiddleware } = require("../middleware/authMiddleware");
+const {
+  searchProducts,
+  getProductScore,
+  getAlternatives,
+  createProduct,
+  getMyProducts,
+  producerUpdateProduct,
+  producerDeleteProduct,
+} = require("../controllers/productController");
 
-// Search products by name or category
+// Public — search and view
 router.get("/search", searchProducts);
-
-// Create a new product (user input)
-router.post("/", createProduct);
-
-// Get single product + AI predicted score
+router.get("/mine", producerMiddleware, getMyProducts);   // MUST be before /:id
 router.get("/:id/score", getProductScore);
+router.get("/:id/alternatives", getAlternatives);
+
+// Producer-protected — submit, edit, delete own products
+router.post("/",    producerMiddleware, createProduct);
+router.patch("/:id",  producerMiddleware, producerUpdateProduct);
+router.delete("/:id", producerMiddleware, producerDeleteProduct);
 
 module.exports = router;

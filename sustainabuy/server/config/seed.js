@@ -3,6 +3,7 @@ const fs = require("fs");
 const csv = require("csv-parser");
 const path = require("path");
 const Product = require("../models/Product");
+const { _computeHealthScore } = require("../controllers/productController");
 require("dotenv").config();
 
 const csvPath = path.join(__dirname, "..", "..", "ai-service", "data", "cleaned_products.csv");
@@ -32,6 +33,7 @@ async function seed() {
     .pipe(csv())
     .on("data", (row) => {
       if (products.length < 2000) { // limit for a manageable demo dataset
+        const nutritionScore = parseFloat(row["nutrition-score-fr_100g"]) || null;
         products.push({
           name: row.product_name || "Unnamed Product",
           packaging: row.packaging || "Unknown",
@@ -43,8 +45,12 @@ async function seed() {
           sugars100g: parseFloat(row.sugars_100g) || 0,
           proteins100g: parseFloat(row.proteins_100g) || 0,
           sodium100g: parseFloat(row.sodium_100g) || 0,
-          nutritionScore: parseFloat(row["nutrition-score-fr_100g"]) || null,
+          nutritionScore,
           nutritionGrade: row.nutrition_grade_fr || "unknown",
+          // Derive healthScore so alternatives work immediately after a reseed
+          healthScore: _computeHealthScore(nutritionScore),
+          healthScoreSource: "nutrition-score-fr-derived-v1",
+          healthScoreVersion: "1.0",
         });
       }
     })
