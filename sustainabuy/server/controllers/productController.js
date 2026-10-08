@@ -101,7 +101,7 @@ exports.getProductScore = async (req, res) => {
       return res.status(404).json({ message: "Product not found" });
     }
 
-    res.json({ product, predictedScore: null });
+    res.json({ product });
   } catch (err) {
     console.error("Product score error:", err.message);
     res.status(500).json({ message: "Failed to fetch product", error: err.message });

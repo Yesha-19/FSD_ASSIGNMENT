@@ -1,6 +1,6 @@
-# 🌱 SustainaBuy — Full Stack Assignment
+# 🌱 SustainaBuy — Full Stack Web Application
 
-A full-stack sustainability product recommendation web app that lets users search food products, view AI-generated eco/nutrition scores, and track their product history.
+A full-stack, role-based product recommendation and analytics web app. SustainaBuy lets users search for food products, view dynamically computed health scores based on nutrition logic, track product history, discover healthier alternatives, and provides powerful dashboard ecosystems for Customers, Producers, and Administrators.
 
 ---
 
@@ -9,111 +9,99 @@ A full-stack sustainability product recommendation web app that lets users searc
 ```
 FSD_ASSIGNMENT/
 └── sustainabuy/
-    ├── client/        ← React frontend  (port 3000)
-    ├── server/        ← Node.js + Express + MongoDB API  (port 5000)
-    └── ai-service/    ← Python Flask AI scoring service  (port 5001)
+    ├── client/        ← React React-Router based frontend (port 3000)
+    └── server/        ← Node.js + Express + MongoDB backend (port 5000)
 ```
+
+*(Note: Previous AI Python backend has been deprecated in favor of a fast, Node-based dynamically derived scoring heuristic)*
 
 ---
 
-## ✨ Features
+## ✨ Current Features
 
 | Feature | Description |
 |---------|-------------|
-| 🔐 Authentication | JWT-based user registration & login |
-| 🔍 Product Search | Search food products from a seeded MongoDB database |
-| 🤖 AI Scoring | Python ML model predicts a nutrition/eco score for each product |
-| 📋 Product Detail | View full product info with predicted sustainability score |
-| 💾 History | Save products to personal dashboard history (JWT protected) |
-| 📊 Dashboard | View all previously saved/searched products |
+| 🔐 Role-Based Access Control | JWT-based auth supporting three distinct roles: `Customer`, `Producer`, and `Admin` |
+| 🔍 Product Search | Real-time querying to search food products stored in the MongoDB data store |
+| 📊 Health Scoring & Validation | Derives actionable "Health Scores" (0-100) dynamically from raw nutrition grades |
+| 🌿 Healthier Alternatives | Automatically recommends and calculates score differences for top alternatives in the same category |
+| ⭐ Ratings & Reviews | Customers can submit interactive star ratings and comments on products |
+| 🚀 Producer Hub | Dedicated interface for producers to add, edit, and delete products, plus view Recharts visual analytics |
+| 🛠️ Admin Panel | Dedicated control center for admin users to manage user roles and overarching system records |
+| 💾 Customer Dashboard | Personal area to revisit saved products, with charts (Recharts) exploring rating/nutrition trends |
 
 ---
 
 ## 🛠️ Tech Stack
 
-| Layer | Technology |
-|-------|-----------|
-| Frontend | React 18, React Router v7, Axios |
-| Backend | Node.js, Express 5, Mongoose, JWT, bcryptjs |
-| Database | MongoDB (local or Atlas) |
-| AI Service | Python 3, Flask, scikit-learn, pandas, joblib |
+### Frontend
+- **Framework:** React 18
+- **Routing:** React Router v7
+- **Data visualization:** Recharts (Interactive charting)
+- **HTTP Client:** Axios
+
+### Backend
+- **Server:** Node.js + Express 5
+- **Database:** MongoDB & Mongoose
+- **Security:** JWT (JSON Web Tokens) & bcryptjs
+- **Utilities:** `csv-parser` for database seeding
 
 ---
 
 ## ⚙️ Prerequisites
 
-Make sure these are installed:
+Make sure these are installed locally on your system:
 
 - **Node.js** v18+ (`node -v`)
 - **npm** v9+ (`npm -v`)
-- **Python** 3.9+ (`python --version`)
 - **MongoDB** v6+ running locally (`mongod --version`)
 
 ---
 
 ## 🚀 How to Run
 
-> You need **2 terminals** for the app itself, and **1 optional terminal** for the AI service.
+> You will need **2 terminal windows** to launch the full-stack suite (Client + Server).
 
 ### Step 1 — Start MongoDB
 
-This project uses a local MongoDB database.
-
-#### Option A: If MongoDB is already installed
+This project uses a local MongoDB database. Start the daemon appropriately. 
 
 Open an **Administrator** PowerShell terminal and run:
-
 ```powershell
 net start MongoDB
 ```
 
-#### Option B: If MongoDB is not installed
-
-```powershell
-winget install --id MongoDB.Server -e --accept-package-agreements
-```
-
-If needed, run MongoDB manually:
-
-```powershell
-& "C:\Program Files\MongoDB\Server\8.3\bin\mongod.exe" --dbpath "C:\data\db" --logpath "C:\data\mongod.log" --port 27017 --bind_ip_all
-```
-
----
+**(If running manually, point `--dbpath` to your data dir handling port 27017).*
 
 ### Step 2 — Start the Backend
 
-Open a new terminal and run:
+Open a terminal window and run:
 
 ```powershell
 cd "c:\Users\YESHA\source\repos\GitHub\FSD_ASSIGNMENT\sustainabuy\server"
 npm install
-npm start
+npm run dev
 ```
 
-The API runs at **http://localhost:5000**.
+The server binds to **http://localhost:5000**.
 
-Make sure `sustainabuy/server/.env` contains:
-
+Ensure `FSD_ASSIGNMENT/sustainabuy/server/.env` is set up:
 ```env
 PORT=5000
 JWT_SECRET=sustainabuy_super_secret_key_2026
 MONGO_URI=mongodb://127.0.0.1:27017/sustainabuy
 ```
 
-First time only, seed the database:
-
+**Seeding (First-time setup only):**
+You can seed the application using:
 ```powershell
-npm run seed
+npm run seed        # Imports base product dataset from CSV
+npm run seed:admin  # Provisions initial admin account if needed
 ```
-
-This loads product data from the cleaned CSV file.
-
----
 
 ### Step 3 — Start the Frontend
 
-Open a second terminal and run:
+Open a second terminal window and run:
 
 ```powershell
 cd "c:\Users\YESHA\source\repos\GitHub\FSD_ASSIGNMENT\sustainabuy\client"
@@ -121,83 +109,38 @@ npm install
 npm start
 ```
 
-Open the app in your browser at:
+Your browser will automatically open to `http://localhost:3000`.
 
-```text
-http://localhost:3000
-```
-
-If the dev server does not stay stable, use the production build instead:
-
-```powershell
-npm run build
-npx serve -s build -l 3000
-```
+*(For a production test, you can run `npm run build && npx serve -s build -l 3000`)*
 
 ---
 
-### Step 4 — Start the AI Service *(optional but recommended)*
+## 🔌 Core API Structure
 
-Open a third terminal if you want AI predictions to work.
+**Authentication (`/api/auth`)**
+- `POST /register` – Register with role-choice.
+- `POST /login` – Retrieves JWT payload identifying the user.
 
-```powershell
-cd "c:\Users\YESHA\source\repos\GitHub\FSD_ASSIGNMENT\sustainabuy\ai-service"
-py -3.13 -m venv venv
-.\venv\Scripts\Activate.ps1
-python -m pip install --upgrade pip
-python -m pip install -r requirements.txt
-python train_model.py
-python app.py
-```
+**Products (`/api/products`)**
+- `GET /search?q=` – Query active products.
+- `GET /:id/score` – Fetch product details, derived score, and nutrition metrics.
+- `GET /:id/alternatives` – Retrieve healthier recommendations.
+- `POST /` & `PATCH /:id` & `DELETE /:id` – Producer product management.
 
-The AI service runs at:
+**Reviews (`/api/reviews`)**
+- `GET /product/:productId` – Fetch all reviews/ratings for a product.
+- `POST /` – Submit or overwrite a customer rating/review.
 
-```text
-http://localhost:5001
-```
+**History (`/api/history`)**
+- `POST /` – Tag product to a customer's logged dashboard history.
+- `GET /` – Fetch all logged products + user analytics points.
 
-> If the AI service is not running, the app still works, but the product score will show: **AI service unavailable**.
-
----
-
-### Verified startup order
-
-Use this order for best results:
-
-1. Start MongoDB
-2. Start backend (`server`)
-3. Run `npm run seed`
-4. Start frontend (`client`)
-5. Start AI service (`ai-service`) only if you want live score predictions
+**Admin (`/api/admin`)**
+- Various admin management interactions supporting the `AdminPanel`.
 
 ---
 
-## 🔌 API Endpoints
+## ✅ System Status
 
-| Method | Endpoint | Description | Auth |
-|--------|----------|-------------|------|
-| POST | `/api/auth/register` | Sign up | No |
-| POST | `/api/auth/login` | Log in | No |
-| GET | `/api/products/search?q=...` | Search products | No |
-| GET | `/api/products/:id/score` | Get product + AI score | No |
-| POST | `/api/history` | Save product to history | JWT |
-| GET | `/api/history` | Get user's history | JWT |
-
----
-
-## ✅ Current Status
-
-The application is working for the main full-stack setup.
-
-### Fixed and verified
-- MongoDB is working locally
-- Backend server runs on port 5000
-- Product data can be seeded successfully
-- Frontend runs on port 3000
-- Search and product retrieval work correctly
-
-### Remaining environment requirement
-- The AI prediction service is optional for the app to run, but it still requires a compatible Python + C++ build environment on Windows.
-- If NumPy fails to build, the issue is environment-related rather than a project code bug.
-
-> The core app works without the AI service, but live AI predictions require the Python environment to be fixed separately.
+- **Fully functional end-to-end flow** with all new RBAC roles and analytic workflows successfully deployed.
+- **Python ML dependency removed** - complex Python/C++ build chains are no longer necessary as algorithmic derivations are calculated dynamically and efficiently within the Node backend.
