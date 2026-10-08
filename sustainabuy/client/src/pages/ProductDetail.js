@@ -445,19 +445,6 @@ function ProductDetail() {
         </div>
       </div>
 
-      {/* AI Score */}
-      <div style={{ background: "white", borderRadius: 10, padding: 20, marginBottom: 18, textAlign: "center", border: "2px solid var(--fern)" }}>
-        <h3 style={{ margin: "0 0 6px", color: "var(--hunter-green)" }}>AI Predicted Nutrition Score</h3>
-        <p style={{ fontSize: 11, color: "#888", margin: "0 0 8px" }}>
-          Predicted by the AI model (lower = healthier on Open Food Facts scale)
-        </p>
-        <p style={{ fontSize: 32, fontWeight: "bold", color: "var(--pine-teal)", margin: 0 }}>
-          {data.predictedScore !== null && data.predictedScore !== undefined
-            ? data.predictedScore
-            : "AI service unavailable"}
-        </p>
-      </div>
-
       {/* Healthier alternatives */}
       <HealthierAlternatives productId={id} />
 

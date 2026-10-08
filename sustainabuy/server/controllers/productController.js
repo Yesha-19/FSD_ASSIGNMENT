@@ -1,5 +1,5 @@
 const Product = require("../models/Product");
-const axios = require("axios");
+const Review = require("../models/Review");
 
 /* ── Nutri-Score algorithm (mirrored from frontend) ── */
 function energyPoints(kj)  { const t=[335,670,1005,1340,1675,2010,2345,2680,3015,3350]; const i=t.findIndex(v=>kj<=v); return i===-1?10:i; }
@@ -81,7 +81,10 @@ function validateProductBody(body) {
 exports.searchProducts = async (req, res) => {
   try {
     const { q } = req.query;
-    const filter = q ? { name: { $regex: q, $options: "i" } } : {};
+    const filter = {
+      addedBy: { $ne: null },
+      ...(q ? { name: { $regex: q, $options: "i" } } : {}),
+    };
     const products = await Product.find(filter).sort({ createdAt: -1 }).limit(20);
     res.json(products);
   } catch (err) {
@@ -90,30 +93,15 @@ exports.searchProducts = async (req, res) => {
   }
 };
 
-// GET /api/products/:id/score — get product + AI predicted nutrition score
+// GET /api/products/:id/score — get product and its stored nutrition score
 exports.getProductScore = async (req, res) => {
   try {
     const product = await Product.findById(req.params.id);
-    if (!product) return res.status(404).json({ message: "Product not found" });
-
-    let predictedScore = null;
-    try {
-      const aiResponse = await axios.post("http://localhost:5001/predict-score", {
-        ingredient_count: product.ingredientCount,
-        packaging: product.packaging,
-        energy_100g: product.energy100g,
-        fat_100g: product.fat100g,
-        sugars_100g: product.sugars100g,
-        proteins_100g: product.proteins100g,
-        sodium_100g: product.sodium100g,
-      }, { timeout: 3000 });
-      predictedScore = aiResponse.data.nutrition_score;
-    } catch (aiErr) {
-      // AI service is optional — return product data even if AI is down
-      console.warn("AI service unavailable:", aiErr.message);
+    if (!product || product.addedBy === null || product.addedBy === undefined) {
+      return res.status(404).json({ message: "Product not found" });
     }
 
-    res.json({ product, predictedScore });
+    res.json({ product, predictedScore: null });
   } catch (err) {
     console.error("Product score error:", err.message);
     res.status(500).json({ message: "Failed to fetch product", error: err.message });
@@ -131,7 +119,9 @@ exports.getProductScore = async (req, res) => {
 exports.getAlternatives = async (req, res) => {
   try {
     const product = await Product.findById(req.params.id);
-    if (!product) return res.status(404).json({ message: "Product not found" });
+    if (!product || product.addedBy === null || product.addedBy === undefined) {
+      return res.status(404).json({ message: "Product not found" });
+    }
 
     if (product.healthScore === null || product.healthScore === undefined) {
       return res.json({
@@ -273,7 +263,10 @@ exports.producerDeleteProduct = async (req, res) => {
     if (String(product.addedBy) !== String(req.user.id)) {
       return res.status(403).json({ message: "You can only delete products you submitted." });
     }
-    await Product.findByIdAndDelete(req.params.id);
+    await Promise.all([
+      Product.findByIdAndDelete(req.params.id),
+      Review.deleteMany({ product: req.params.id }),
+    ]);
     res.json({ message: "Product deleted successfully", deletedId: req.params.id });
   } catch (err) {
     console.error("Producer delete product error:", err.message);
@@ -365,6 +358,7 @@ exports.deleteProduct = async (req, res) => {
   try {
     const product = await Product.findByIdAndDelete(req.params.id);
     if (!product) return res.status(404).json({ message: "Product not found" });
+    await Review.deleteMany({ product: req.params.id });
     res.json({ message: "Product deleted successfully", deletedId: req.params.id });
   } catch (err) {
     console.error("Admin delete product error:", err.message);

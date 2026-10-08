@@ -9,6 +9,11 @@ exports.submitReview = async (req, res) => {
       return res.status(400).json({ message: "productId and rating (1-5) are required." });
     }
 
+    const product = await Product.findById(productId);
+    if (!product || product.addedBy === null || product.addedBy === undefined) {
+      return res.status(404).json({ message: "Product not found" });
+    }
+
     // Upsert — one review per user per product
     const review = await Review.findOneAndUpdate(
       { product: productId, user: req.user.id },
@@ -25,6 +30,11 @@ exports.submitReview = async (req, res) => {
 /* ── GET /api/reviews/product/:productId ── Public: all reviews for a product */
 exports.getProductReviews = async (req, res) => {
   try {
+    const product = await Product.findById(req.params.productId);
+    if (!product || product.addedBy === null || product.addedBy === undefined) {
+      return res.status(404).json({ message: "Product not found" });
+    }
+
     const reviews = await Review.find({ product: req.params.productId })
       .populate("user", "name")
       .sort({ createdAt: -1 });
